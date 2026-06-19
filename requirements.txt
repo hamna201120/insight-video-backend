@@ -10,7 +10,7 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 
 # Whisper & Audio Processing
-openai-whisper==20231117
+openai-whisper>=20231117
 pytube==15.0.0
 yt-dlp==2023.11.14
 
