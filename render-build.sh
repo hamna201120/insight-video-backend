@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
+# exit on error
 set -o errexit
 
-echo "🚀 Installing system dependencies..."
-apt-get update
-apt-get install -y ffmpeg
+echo "🚀 Installing Python packages..."
 
-echo "🚀 Installing build tools..."
+# Upgrade pip and install build tools
 pip install --upgrade pip setuptools wheel
 
-echo "🚀 Installing numpy FIRST (critical!)..."
+# Install numpy first (critical for whisper)
 pip install numpy==1.24.3 --no-cache-dir
 
-echo "🚀 Installing CPU-only PyTorch..."
+# Install CPU-only PyTorch
 pip install torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu --no-cache-dir
 
-echo "📦 Installing requirements..."
+# Install the rest of requirements
 pip install -r requirements.txt --no-cache-dir
+
+echo "🎤 Pre-downloading Whisper model (tiny)..."
+python -c "import whisper; whisper.load_model('tiny')"
 
 echo "✅ Build complete!"
