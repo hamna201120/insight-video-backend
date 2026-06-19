@@ -1,8 +1,3 @@
-# Build Tools - MUST be first!
-setuptools>=65.0.0
-wheel>=0.38.0
-Cython>=3.0.0
-
 # FastAPI & Database
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
@@ -14,18 +9,18 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 
-# Whisper & Audio Processing (ZAROORI!)
-openai-whisper==20231117
+# YouTube & Audio Processing
 yt-dlp==2023.11.14
+ffmpeg-python==0.2.0
+
+# ✅ REPLACE openai-whisper WITH THIS:
+faster-whisper==1.0.0
 
 # CORS & Environment
 python-dotenv==1.0.0
 
-# FFmpeg
-ffmpeg-python==0.2.0
-
-# Gemini API (ZAROORI!)
+# Gemini API
 google-generativeai>=0.3.0
 
-# Lightweight alternatives
+# Utilities
 numpy>=1.21.0
