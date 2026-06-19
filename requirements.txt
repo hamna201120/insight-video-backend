@@ -1,8 +1,9 @@
-# First, ensure build tools are installed
+# Build Tools - MUST be first!
 setuptools>=65.0.0
 wheel>=0.38.0
+Cython>=3.0.0
 
-# Core Web Framework & Database
+# FastAPI & Database
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 sqlmodel==0.0.14
@@ -12,19 +13,19 @@ sqlalchemy==2.0.23
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
+
+# Whisper & Audio Processing (ZAROORI!)
+openai-whisper==20231117
+yt-dlp==2023.11.14
+
+# CORS & Environment
 python-dotenv==1.0.0
 
-# YouTube & Transcription
-yt-dlp==2023.11.14
+# FFmpeg
 ffmpeg-python==0.2.0
-youtube-transcript-api==0.6.1
-openai-whisper==20231117
 
-# AI (Gemini SDK)
+# Gemini API (ZAROORI!)
 google-generativeai>=0.3.0
 
-# Utilities
+# Lightweight alternatives
 numpy>=1.21.0
-
-# Other Dependencies
-argon2-cffi>=21.3.0
