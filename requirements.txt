@@ -13,8 +13,8 @@ python-multipart==0.0.6
 yt-dlp==2023.11.14
 ffmpeg-python==0.2.0
 
-# ✅ Use openai-whisper with pre-built wheel
-openai-whisper @ https://github.com/openai/whisper/archive/main.zip
+# ✅ CPU-ONLY version - NO CUDA!
+openai-whisper @ git+https://github.com/openai/whisper.git
 
 # CORS & Environment
 python-dotenv==1.0.0
@@ -24,3 +24,6 @@ google-generativeai>=0.3.0
 
 # Utilities
 numpy>=1.21.0
+
+# ✅ CPU-only PyTorch (NO CUDA!)
+torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu
