@@ -1,4 +1,4 @@
-# FastAPI & Database
+# Core Web Framework & Database
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 sqlmodel==0.0.14
@@ -8,19 +8,19 @@ sqlalchemy==2.0.23
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
-
-# Whisper & Audio Processing (ZAROORI!)
-openai-whisper==20231117
-yt-dlp==2023.11.14
-
-# CORS & Environment
 python-dotenv==1.0.0
 
-# FFmpeg
+# YouTube & Transcription
+yt-dlp==2023.11.14
+openai-whisper==20231117
 ffmpeg-python==0.2.0
+youtube-transcript-api==0.6.1
 
-# Gemini API (ZAROORI!)
+# AI (Gemini SDK)
 google-generativeai>=0.3.0
 
-# Lightweight alternatives
+# Utilities
 numpy>=1.21.0
+
+# Other Dependencies
+argon2-cffi>=21.3.0
