@@ -13,7 +13,7 @@ python-multipart==0.0.6
 yt-dlp==2023.11.14
 ffmpeg-python==0.2.0
 
-# ✅ REPLACE openai-whisper WITH THIS:
+# ✅ NEW: faster-whisper instead of openai-whisper
 faster-whisper==1.0.0
 
 # CORS & Environment
