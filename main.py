@@ -7,7 +7,6 @@ from datetime import timedelta, datetime
 from jose import JWTError, jwt
 import re
 import subprocess
-import whisper
 import yt_dlp
 import tempfile
 import os
@@ -16,6 +15,9 @@ from pathlib import Path
 from typing import Optional, List, Dict
 from dotenv import load_dotenv
 from urllib.parse import urlparse, parse_qs
+
+# ✅ NEW: faster-whisper import
+from faster_whisper import WhisperModel
 
 # Load environment variables from .env file
 load_dotenv()
@@ -405,14 +407,13 @@ def get_video_metadata(url: str) -> dict:
         raise HTTPException(status_code=400, detail=f"VIDEO_METADATA_FAILED: {str(e)}")
 
 def get_video_transcript(video_id: str) -> str:
-    """Extract audio from YouTube video and transcribe using Whisper"""
+    """Extract audio from YouTube video and transcribe using faster-whisper"""
     try:
         # Try to get transcript using youtube_transcript_api first (faster, no download)
         try:
             from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
             
             print(f"📝 Attempting to fetch transcript directly for video: {video_id}")
-            # Fix: Use correct method name
             transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
             
             # Try to get English transcript
@@ -513,41 +514,51 @@ def get_video_transcript(video_id: str) -> str:
             if not audio_path:
                 raise HTTPException(status_code=400, detail="Failed to download audio")
             
-            # Load Whisper model
-            print("🧠 Loading Whisper model...")
+            # ✅ CHANGED: Load faster-whisper model instead of openai-whisper
+            print("🧠 Loading faster-whisper model...")
             print("STAGE:TRANSCRIBING")
             try:
-                model = whisper.load_model("base")
-                print("✅ Whisper model loaded (base)")
+                # Use "base" model for good accuracy, "int8" for memory efficiency
+                model = WhisperModel("base", device="cpu", compute_type="int8")
+                print("✅ faster-whisper model loaded (base)")
             except Exception as e:
                 print(f"⚠️ Base model failed, trying tiny: {e}")
-                model = whisper.load_model("tiny")
-                print("✅ Whisper model loaded (tiny)")
+                model = WhisperModel("tiny", device="cpu", compute_type="int8")
+                print("✅ faster-whisper model loaded (tiny)")
             
-            # Transcribe audio
-            print("🎤 Transcribing audio with Whisper...")
+            # ✅ CHANGED: Transcribe with faster-whisper
+            print("🎤 Transcribing audio with faster-whisper...")
             try:
-                result = model.transcribe(
+                segments, info = model.transcribe(
                     audio_path,
-                    task='translate',
-                    fp16=False,
-                    verbose=False
+                    task="translate",
+                    beam_size=5,
+                    best_of=5,
+                    temperature=0.0,
+                    vad_filter=True  # Voice Activity Detection for better accuracy
                 )
                 
-                transcript_text = result["text"].strip()
+                # Collect all segments into full transcript
+                transcript_text = " ".join([segment.text for segment in segments])
+                transcript_text = transcript_text.strip()
                 
                 if not transcript_text or len(transcript_text.split()) < 20:
-                    result = model.transcribe(
+                    # Retry with different parameters if result is too short
+                    segments, info = model.transcribe(
                         audio_path,
-                        task='translate',
-                        fp16=False,
-                        verbose=False,
-                        temperature=0.0
+                        task="translate",
+                        beam_size=5,
+                        best_of=5,
+                        temperature=0.0,
+                        vad_filter=False
                     )
-                    transcript_text = result["text"].strip()
+                    transcript_text = " ".join([segment.text for segment in segments])
+                    transcript_text = transcript_text.strip()
                 
                 print(f"✅ Transcription complete: {len(transcript_text)} characters, {len(transcript_text.split())} words")
+                print(f"📊 Language: {info.language}, Probability: {info.language_probability:.2f}")
                 
+                # Clean up memory
                 del model
                 gc.collect()
                 
@@ -802,7 +813,7 @@ def summarize_video(
                     "ai_model_used": model_used,
                     "processing_method": processing_method,
                     "chunks_processed": ai_results.get("chunks_processed", 1),
-                    "transcription_model": "Whisper",
+                    "transcription_model": "faster-whisper",
                 }
                 
                 video = Video(**video_data)
@@ -842,7 +853,7 @@ def summarize_video(
             "ai_model_used": model_used,
             "processing_method": processing_method,
             "chunks_processed": ai_results.get("chunks_processed", 1),
-            "transcription_model": "Whisper",
+            "transcription_model": "faster-whisper",
             "saved": saved_video_id is not None,
             "saved_video_id": saved_video_id,
             "status": "SUMMARIZED",
@@ -1192,7 +1203,7 @@ def root():
             "hierarchical_available": HIERARCHICAL_AVAILABLE,
             "active_model": "Gemini 1.5 Pro" if USE_GEMINI else "BART (Hierarchical)" if HIERARCHICAL_AVAILABLE else "Dummy"
         },
-        "transcription_engine": "Whisper",
+        "transcription_engine": "faster-whisper",
         "max_video_duration": "No limit (hierarchical processing)",
         "auth_info": {
             "endpoints": {
@@ -1217,9 +1228,11 @@ def root():
 def health_check():
     """Health check endpoint"""
     try:
+        # ✅ CHANGED: Test faster-whisper instead of openai-whisper
         try:
-            whisper.load_model("base")
+            model = WhisperModel("tiny", device="cpu", compute_type="int8")
             whisper_status = "ready"
+            del model
         except Exception as e:
             whisper_status = f"error: {str(e)}"
             
